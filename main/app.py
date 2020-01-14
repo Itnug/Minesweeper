@@ -5,11 +5,7 @@ Created on 27-Apr-2017
 '''
 import tkinter as tk
 from main.model import Minesweeper
-
-global mouse_x
-global mouse_y
-mouse_x = 0
-mouse_y = 0
+from main.model import State
 
 W = 10
 H = 10
@@ -21,15 +17,81 @@ class App(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
         self.canvas = tk.Canvas(self, width=W * CS, height=H * CS, highlightthickness=0)
-        self.canvas.bind("<Button-1>",find_mouse_xy)
+        self.canvas.bind('<Button-1>', self.peek)
+        self.canvas.bind('<Button-3>', self.flag)
         self.canvas.pack()
         
-        for i in range(W):
-            for j in range(H):
-                self.canvas.create_rectangle(i*CS, j*CS, (i+1)*CS, (j+1)*CS)
-        
         self.model = Minesweeper(W,H)
+        print(self.model)
+        self.covers = [None]*(W*H)
+        self.flags = [None]*(W*H)
+        for j in range(H):
+            for i in range(W):
+                self.canvas.create_rectangle(i*CS, j*CS, (i+1)*CS, (j+1)*CS)
+                self.canvas.create_text(i*CS + CS // 2, j*CS + CS // 2, text = str(self.model.clues[j*W + i]).replace("0", " "))
+                self.covers[j*W + i] = self.canvas.create_rectangle(i*CS, j*CS, (i+1)*CS, (j+1)*CS, fill='grey')
+                
+                
+        
+    def peek(self, event):
+        print(event.__dict__)
+        print(event.x)
+        print(event.y)
+        print('left')
+        
+        if self.model.game_over:
+            return
+        x = event.x // CS
+        y = event.y // CS
+        self.model.peek(x, y)
+        self.update_view()
+    
+    def flag(self, event):
+        print(event.__dict__)
+        print(event.x)
+        print(event.y)
+        print('right')
+        if self.model.game_over:
+            return
+        x = event.x // CS
+        y = event.y // CS
+        self.model.flag(x, y)
+        self.update_view()
+    
 
+    def update_view(self):
+        widgets = self.canvas.find_all();
+        for x in range(W):
+            for y in range(H):
+                i = y*W + x
+                if self.model.gridstate[i] == State.KNOWN:
+                    if self.covers[i] in widgets:
+                        self.canvas.delete(self.covers[i])
+                
+                if self.model.gridstate[i] == State.FLAGGED:
+                    if self.flags[i] not in widgets:
+                        X = x*CS 
+                        Y = y*CS
+                        self.canvas.create_polygon(X+4,Y+2,X+16,Y+2,X+16,Y+20,X+14,Y+20,X+14,Y+10,X+10,Y+10, fill='red')
+                elif self.flags[i] in widgets:
+                    self.canvas.delete(self.flags[i])
+            
+        if self.model.game_over:
+            for y in range(H):
+                for x in range(W):
+                    i = y*W + x
+                    if self.model.clues[i] == Minesweeper.BOMB:
+                        if self.model.gridstate[i] == State.EXPLODED:
+                            self.canvas.create_oval(x*CS + 3, y*CS + 3, (x+1)*CS - 3, (y+1)*CS - 3, fill='black')
+                        if self.model.gridstate[i] == State.UNKNOWN:
+                            self.canvas.create_oval(x*CS + 3, y*CS + 3, (x+1)*CS - 3, (y+1)*CS - 3, fill='black')
+                                  
+            self.canvas.create_text(W*CS // 2 + 1 , H*CS // 2 - 1, fill="black", font=("consolas",22), text="Game Over")
+            self.canvas.create_text(W*CS // 2 - 1 , H*CS // 2 + 1, fill="black", font=("consolas",22), text="Game Over")
+            self.canvas.create_text(W*CS // 2 - 1 , H*CS // 2 - 1, fill="black", font=("consolas",22), text="Game Over")
+            self.canvas.create_text(W*CS // 2 + 1 , H*CS // 2 + 1, fill="black", font=("consolas",22), text="Game Over")
+            self.canvas.create_text(W*CS // 2, H*CS // 2, fill="white", font=("consolas",22), text="Game Over")
+            
 if __name__ == '__main__':
     root = tk.Tk()
     App(root).pack()
@@ -41,11 +103,6 @@ if __name__ == '__main__':
 #Keyframe editor: (DO LATER)
 
 #Displays mouse x and y on workspace:
-def find_mouse_xy(event):
-    mouse_x = event.winfo_pointerx()
-    mouse_y = event.winfo_pointery()
-    print ("x: " + str(mouse_x))
-    print ("y: " + str(mouse_y))
 
 
 

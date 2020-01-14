@@ -5,16 +5,15 @@ Created on 27-Apr-2017
 '''
 import random
 
-class Minesweeper(object):
-    BOMB = 9 
-    
-    #states
+class State(object):
     UNKNOWN = 0
     KNOWN = 1
     FLAGGED = 2
     EXPLODED = 3
-    SAFE = 4
-     
+    
+class Minesweeper(object):
+    BOMB = 9 
+    
     def __init__(self, x, y=None, bombs=None):
         if not y: y = x
         if not bombs: bombs = x*y//10
@@ -23,17 +22,17 @@ class Minesweeper(object):
         self.y = y
         self._size = x * y
         self.flags = bombs
-        self.grid = [0]*(self._size)
-        self.gridstate = [Minesweeper.UNKNOWN]*(self._size)
+        self.clues = [0]*(self._size)
+        self.gridstate = [State.UNKNOWN]*(self._size)
         
         for place in random.sample(range(self._size), bombs):
-            self.grid[place] = Minesweeper.BOMB
+            self.clues[place] = Minesweeper.BOMB
         self.update_clues()
-        
+        self.game_over = False
         
     def update_clues(self):
         for i in range(self._size):
-            if self.grid[i] == Minesweeper.BOMB:
+            if self.clues[i] == Minesweeper.BOMB:
                 continue
             row = i // self.x
             col = i % self.x
@@ -41,24 +40,26 @@ class Minesweeper(object):
             conditions = [col>0 and row>0, row>0, col<self.x-1 and row>0,
                           col>0, col<self.x-1,
                           col>0 and row<self.y-1, row<self.y-1, col<self.x-1 and row<self.y-1]
+            
             X, Y = 1, self.x
             
             nbd = [-X-Y, -Y, X-Y,
                    -X,       X,
                    -X+Y, Y, X+Y]
             for nbr, condition in zip(nbd, conditions):
-                if condition and self.grid[i+nbr] == Minesweeper.BOMB:
-                    self.grid[i]+=1
+                if condition and self.clues[i+nbr] == Minesweeper.BOMB:
+                    self.clues[i]+=1
                     
-    def test(self, x, y):
-        self.test_by_index(y*self.x + x)
+    def peek(self, x, y):
+        self.peek_by_index(y*self.x + x)
     
-    def test_by_index(self, i):
-        if self.grid[i] == Minesweeper.BOMB:
-            self.gridstate = Minesweeper.EXPLODED
-        elif self.gridstate[i] == Minesweeper.UNKNOWN:
-            self.gridstate[i] = Minesweeper.KNOWN
-            if self.grid[i] == 0:
+    def peek_by_index(self, i):
+        if self.clues[i] == Minesweeper.BOMB:
+            self.gridstate[i] = State.EXPLODED
+            self.game_over = True
+        elif self.gridstate[i] == State.UNKNOWN:
+            self.gridstate[i] = State.KNOWN
+            if self.clues[i] == 0:
                 #no bombs in the nbd. safely check them all
                 row = i // self.x
                 col = i % self.x
@@ -73,24 +74,24 @@ class Minesweeper(object):
                        -X+Y, Y, X+Y]
                 for nbr, condition in zip(nbd,conditions):
                     if condition:
-                        self.test_by_index(i+nbr)
+                        self.peek_by_index(i+nbr)
                 
-    def toggle_flag(self, x,y):
-        self.toggle_flag_by_index(y*self.x + x)
+    def flag(self, x,y):
+        self.flag_by_index(y*self.x + x)
         
-    def toggle_flag_by_index(self, i):
-        if self.gridstate[i] == Minesweeper.UNKNOWN:
-            self.gridstate[i] = Minesweeper.FLAGGED
+    def flag_by_index(self, i):
+        if self.gridstate[i] == State.UNKNOWN:
+            self.gridstate[i] = State.FLAGGED
             self.flags -= 1
-        elif self.gridstate[i] == Minesweeper.FLAGGED:
-            self.gridstate[i] = Minesweeper.UNKNOWN
+        elif self.gridstate[i] == State.FLAGGED:
+            self.gridstate[i] = State.UNKNOWN
             self.flags += 1
         else:
             print("Cannot Flag")
 
             
     def __str__(self):
-        return '\n'.join([' '.join(map(str,self.grid[i:i+self.x])) for i in range(0, len(self.grid), self.x)]) 
+        return '\n'.join([' '.join(map(str,self.clues[i:i+self.x])) for i in range(0, len(self.clues), self.x)]) 
 
 if __name__ == '__main__':
     print(Minesweeper(10))  
