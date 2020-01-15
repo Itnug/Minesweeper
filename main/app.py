@@ -6,6 +6,7 @@ Created on 27-Apr-2017
 import tkinter as tk
 from main.model import Minesweeper
 from main.model import State
+import logging
 
 W = 10
 H = 10
@@ -22,7 +23,7 @@ class App(tk.Frame):
         self.canvas.pack()
         
         self.model = Minesweeper(W,H)
-        print(self.model)
+        logging.debug(self.model)
         self.covers = [None]*(W*H)
         self.flags = [None]*(W*H)
         for j in range(H):
@@ -34,10 +35,10 @@ class App(tk.Frame):
                 
         
     def peek(self, event):
-        print(event.__dict__)
-        print(event.x)
-        print(event.y)
-        print('left')
+        logging.debug(event.__dict__)
+        logging.debug(event.x)
+        logging.debug(event.y)
+        logging.debug('left')
         
         if self.model.game_over:
             return
@@ -47,10 +48,10 @@ class App(tk.Frame):
         self.update_view()
     
     def flag(self, event):
-        print(event.__dict__)
-        print(event.x)
-        print(event.y)
-        print('right')
+        logging.debug(event.__dict__)
+        logging.debug(event.x)
+        logging.debug(event.y)
+        logging.debug('right')
         if self.model.game_over:
             return
         x = event.x // CS
@@ -72,7 +73,7 @@ class App(tk.Frame):
                     if self.flags[i] not in widgets:
                         X = x*CS 
                         Y = y*CS
-                        self.canvas.create_polygon(X+4,Y+2,X+16,Y+2,X+16,Y+20,X+14,Y+20,X+14,Y+10,X+10,Y+10, fill='red')
+                        self.flags[i] = self.canvas.create_polygon(X+4,Y+2,X+16,Y+2,X+16,Y+20,X+14,Y+20,X+14,Y+10,X+10,Y+10, fill='red')
                 elif self.flags[i] in widgets:
                     self.canvas.delete(self.flags[i])
             
