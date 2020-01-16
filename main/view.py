@@ -54,7 +54,7 @@ class MinesweeperView(object):
                     
             if self.model.gridstate[i] == State.FLAGGED:
                 if not cell['flag']:
-                    cell['flag'] = self.canvas.create_polygon(*FLAG_VECTOR, fill='red')
+                    cell['flag'] = self.canvas.create_polygon(*map(lambda x: x*self.CS/20, FLAG_VECTOR), fill='red')
                     self.canvas.move(cell['flag'], X, Y)
             elif cell['flag']:
                 self.canvas.delete(cell['flag'])

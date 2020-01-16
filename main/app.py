@@ -33,6 +33,21 @@ class App(tk.Frame):
         game_menu.add_command(label='Exit', command=parent.quit)
         menubar.add_cascade(label='Game', menu=game_menu)
         
+        options_menu = tk.Menu(menubar, tearoff=0)
+        difficulty_submenu = tk.Menu(options_menu, tearoff=0)
+        difficulty_submenu.add_radiobutton(label="Easy", command=lambda: self.set_difficulty(10))
+        difficulty_submenu.add_radiobutton(label="Medium", command=lambda: self.set_difficulty(8))
+        difficulty_submenu.add_radiobutton(label="Hard", command=lambda: self.set_difficulty(6))
+        options_menu.add_cascade(label='Difficulty', menu=difficulty_submenu, underline=0)
+        
+        size_submenu = tk.Menu(options_menu, tearoff=0)
+        size_submenu.add_radiobutton(label='small', command=lambda: self.set_size(10))
+        size_submenu.add_radiobutton(label='medium', command=lambda: self.set_size(20))
+        size_submenu.add_radiobutton(label='large', command=lambda: self.set_size(30))
+        options_menu.add_cascade(label='Size', menu=size_submenu, underline=0)
+         
+        menubar.add_cascade(label='Options', menu=options_menu)
+        
         parent.config(menu=menubar)
         
         self.header_canvas = tk.Canvas(parent)
@@ -53,7 +68,20 @@ class App(tk.Frame):
         self.view = MinesweeperView(self.header_canvas, self.canvas, self.model)
         self.header_canvas.pack()
         self.canvas.pack()
-                
+    
+    def set_difficulty(self, n):
+        '''one bomb for every n cells'''
+        Minesweeper.DIFFICULTY = n
+        self.new_game()
+    
+    def set_size(self, n):
+        '''n width and n height'''
+        global W
+        global H
+        W = n
+        H = n
+        self.new_game()
+            
     def peek(self, event):
         logger.debug(f'({event.x},{event.y})')
         logger.debug('left click')
