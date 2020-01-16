@@ -31,13 +31,17 @@ class App(tk.Frame):
         
         self.model = Minesweeper(W,H)
         logging.debug(self.model)
-        self.covers = [None]*(W*H)
-        self.flags = [None]*(W*H)
-        for j in range(H):
-            for i in range(W):
-                self.canvas.create_rectangle(i*CS, j*CS, (i+1)*CS, (j+1)*CS)
-                self.canvas.create_text(i*CS + CS // 2, j*CS + CS // 2, text = str(self.model.clues[j*W + i]).replace("0", " "))
-                self.covers[j*W + i] = self.canvas.create_rectangle(i*CS, j*CS, (i+1)*CS, (j+1)*CS, fill='grey')
+        self.view = [{'x':i % W, 'y':i // W} for i in range(W * H)]
+        for i, cell in enumerate(self.view):
+            X = cell['x'] * CS 
+            Y = cell['y'] * CS
+            clue_str = str(self.model.clues[i]).replace("0", " ")
+            
+            cell['frame'] = self.canvas.create_rectangle(X, Y, X + CS, Y + CS)
+            cell['clue'] = self.canvas.create_text(X + CS // 2, Y + CS // 2, text=clue_str)
+            cell['cover'] = self.canvas.create_rectangle(X, Y, X + CS, Y + CS, fill='grey')
+            cell['flag'] = None
+            cell['bomb'] = None
                 
     def peek(self, event):
         logger.debug(f'({event.x},{event.y})')
@@ -72,33 +76,32 @@ class App(tk.Frame):
         self.canvas.create_text(X, Y, fill="white", font=("consolas", 22), text=ending_text)
 
     def update_view(self):
-        widgets = self.canvas.find_all();
-        for x in range(W):
-            for y in range(H):
-                i = y*W + x
-                if self.model.gridstate[i] == State.KNOWN:
-                    if self.covers[i] in widgets:
-                        self.canvas.delete(self.covers[i])
-                
-                if self.model.gridstate[i] == State.FLAGGED:
-                    if self.flags[i] not in widgets:
-                        X = x*CS 
-                        Y = y*CS
-                        self.flags[i] = self.canvas.create_polygon(*FLAG_VECTOR, fill='red')
-                        self.canvas.move(self.flags[i], X, Y)
-                elif self.flags[i] in widgets:
-                    self.canvas.delete(self.flags[i])
+        for i, cell in enumerate(self.view):
+            X = cell['x']*CS 
+            Y = cell['y']*CS
             
-        if self.model.game_over:
-            for y in range(H):
-                for x in range(W):
-                    i = y*W + x
-                    if self.model.clues[i] == Minesweeper.BOMB:
-                        if self.model.gridstate[i] == State.EXPLODED:
-                            self.canvas.create_oval(x*CS + 3, y*CS + 3, (x+1)*CS - 3, (y+1)*CS - 3, fill='black')
-                        if self.model.gridstate[i] == State.UNKNOWN:
-                            self.canvas.create_oval(x*CS + 3, y*CS + 3, (x+1)*CS - 3, (y+1)*CS - 3, fill='black')
-                                  
+            if self.model.gridstate[i] == State.KNOWN:
+                if cell['cover']:
+                    self.canvas.delete(cell['cover'])
+                    cell['cover'] = None
+                    
+            if self.model.gridstate[i] == State.FLAGGED:
+                if not cell['flag']:
+                    cell['flag'] = self.canvas.create_polygon(*FLAG_VECTOR, fill='red')
+                    self.canvas.move(cell['flag'], X, Y)
+            elif cell['flag']:
+                self.canvas.delete(cell['flag'])
+                cell['flag'] = None
+                
+            if self.model.game_over and self.model.clues[i] == Minesweeper.BOMB:
+                if self.model.gridstate[i] == State.EXPLODED:
+                    cell['bomb'] = self.canvas.create_oval(3, 3, CS - 3, CS - 3, fill='black')
+                    self.canvas.move(cell['bomb'], X, Y)
+                if self.model.gridstate[i] == State.UNKNOWN:
+                    cell['bomb'] = self.canvas.create_oval(3, 3, CS - 3, CS - 3, fill='black')
+                    self.canvas.move(cell['bomb'], X, Y)
+
+        if self.model.game_over:              
             if self.model.win:
                 self.draw_ending_text(WIN_TEXT)
             else:                
