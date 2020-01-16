@@ -13,10 +13,11 @@ class State(object):
     
 class Minesweeper(object):
     BOMB = 9 
+    DIFFICULTY = 10
     
     def __init__(self, x, y=None, bombs=None):
         if not y: y = x
-        if not bombs: bombs = x*y//10
+        if not bombs: bombs = x*y//self.DIFFICULTY
         
         self.x = x
         self.y = y

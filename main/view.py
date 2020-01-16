@@ -4,7 +4,6 @@ Created on 16-Jan-2020
 @author: Srinivas Gunti
 '''
 from main.model import State
-import tkinter as tk
 
 FLAG_VECTOR = [4, 2, 16, 2, 16, 20, 14, 20, 14, 10, 10, 10]
 
@@ -15,12 +14,13 @@ LOSS_TEXT = 'Game Over'
 class MinesweeperView(object):
     CS = 20
         
-    def __init__(self, parent, model):
+    def __init__(self, canvas, model):
         self.model = model
         
         W = self.model.x
         H = self.model.y
-        self.canvas = tk.Canvas(parent, width=W * self.CS, height=H * self.CS, highlightthickness=0)        
+        self.canvas = canvas
+        canvas.config(width=W * self.CS, height=H * self.CS, highlightthickness=0)        
         self.cells = [{'x':i % W, 'y':i // W} for i in range(W * H)]
         for i, cell in enumerate(self.cells):
             X = cell['x'] * self.CS

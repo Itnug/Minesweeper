@@ -25,14 +25,30 @@ class App(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
+        
+        menubar = tk.Menu(parent)
+        
+        game_menu = tk.Menu(menubar, tearoff=0)
+        game_menu.add_command(label='New', command=self.new_game)
+        game_menu.add_command(label='Exit', command=parent.quit)
+        menubar.add_cascade(label='Game', menu=game_menu)
+        
+        parent.config(menu=menubar)
+        
+        self.canvas = tk.Canvas(parent)
+        self.canvas.bind('<Button-1>', self.peek)
+        self.canvas.bind('<Button-3>', self.flag)
+        
+        self.new_game()
+        
+    def new_game(self):
+        self.canvas.delete("all")
         self.model = Minesweeper(W, H)
         logging.debug(self.model)
 
-        self.view = MinesweeperView(self, self.model)
-        self.view.canvas.bind('<Button-1>', self.peek)
-        self.view.canvas.bind('<Button-3>', self.flag)
-        self.view.canvas.pack()        
-        
+        self.view = MinesweeperView(self.canvas, self.model)
+        self.canvas.pack()
+                
     def peek(self, event):
         logger.debug(f'({event.x},{event.y})')
         logger.debug('left click')
