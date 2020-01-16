@@ -8,11 +8,17 @@ from main.model import Minesweeper
 from main.model import State
 import logging
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 W = 10
 H = 10
 B = 10
 CS = 20
 FLAG_VECTOR = [4,2,16,2,16,20,14,20,14,10,10,10]
+
+WIN_TEXT = 'You Win!!'
+LOSS_TEXT = 'Game Over'
 
 class App(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -33,13 +39,9 @@ class App(tk.Frame):
                 self.canvas.create_text(i*CS + CS // 2, j*CS + CS // 2, text = str(self.model.clues[j*W + i]).replace("0", " "))
                 self.covers[j*W + i] = self.canvas.create_rectangle(i*CS, j*CS, (i+1)*CS, (j+1)*CS, fill='grey')
                 
-                
-        
     def peek(self, event):
-        logging.debug(event.__dict__)
-        logging.debug(event.x)
-        logging.debug(event.y)
-        logging.debug('left')
+        logger.debug(f'({event.x},{event.y})')
+        logger.debug('left click')
         
         if self.model.game_over:
             return
@@ -49,10 +51,9 @@ class App(tk.Frame):
         self.update_view()
     
     def flag(self, event):
-        logging.debug(event.__dict__)
-        logging.debug(event.x)
-        logging.debug(event.y)
-        logging.debug('right')
+        logger.debug(f'({event.x},{event.y})')
+        logger.debug('right click')
+        
         if self.model.game_over:
             return
         x = event.x // CS
@@ -60,6 +61,15 @@ class App(tk.Frame):
         self.model.flag(x, y)
         self.update_view()
     
+
+    def draw_ending_text(self, ending_text):
+        X = W * CS // 2
+        Y = H * CS // 2
+        self.canvas.create_text(X + 1, Y - 1, fill="black", font=("consolas", 22), text=ending_text)
+        self.canvas.create_text(X - 1, Y + 1, fill="black", font=("consolas", 22), text=ending_text)
+        self.canvas.create_text(X - 1, Y - 1, fill="black", font=("consolas", 22), text=ending_text)
+        self.canvas.create_text(X + 1, Y + 1, fill="black", font=("consolas", 22), text=ending_text)
+        self.canvas.create_text(X, Y, fill="white", font=("consolas", 22), text=ending_text)
 
     def update_view(self):
         widgets = self.canvas.find_all();
@@ -89,11 +99,10 @@ class App(tk.Frame):
                         if self.model.gridstate[i] == State.UNKNOWN:
                             self.canvas.create_oval(x*CS + 3, y*CS + 3, (x+1)*CS - 3, (y+1)*CS - 3, fill='black')
                                   
-            self.canvas.create_text(W*CS // 2 + 1 , H*CS // 2 - 1, fill="black", font=("consolas",22), text="Game Over")
-            self.canvas.create_text(W*CS // 2 - 1 , H*CS // 2 + 1, fill="black", font=("consolas",22), text="Game Over")
-            self.canvas.create_text(W*CS // 2 - 1 , H*CS // 2 - 1, fill="black", font=("consolas",22), text="Game Over")
-            self.canvas.create_text(W*CS // 2 + 1 , H*CS // 2 + 1, fill="black", font=("consolas",22), text="Game Over")
-            self.canvas.create_text(W*CS // 2, H*CS // 2, fill="white", font=("consolas",22), text="Game Over")
+            if self.model.win:
+                self.draw_ending_text(WIN_TEXT)
+            else:                
+                self.draw_ending_text(LOSS_TEXT)
             
 if __name__ == '__main__':
     root = tk.Tk()

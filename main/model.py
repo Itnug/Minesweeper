@@ -21,6 +21,7 @@ class Minesweeper(object):
         self.x = x
         self.y = y
         self._size = x * y
+        self.bombs = bombs
         self.flags = bombs
         self.clues = [0]*(self._size)
         self.gridstate = [State.UNKNOWN]*(self._size)
@@ -52,11 +53,18 @@ class Minesweeper(object):
                     
     def peek(self, x, y):
         self.peek_by_index(y*self.x + x)
+        if self.gridstate.count(State.KNOWN) == self._size - self.bombs:
+            for i in range(self._size):
+                if self.gridstate[i] == State.UNKNOWN:
+                    self.flag_by_index(i)
+            self.game_over = True
+            self.win = True
     
     def peek_by_index(self, i):
         if self.clues[i] == Minesweeper.BOMB:
             self.gridstate[i] = State.EXPLODED
             self.game_over = True
+            self.win = False
         elif self.gridstate[i] == State.UNKNOWN:
             self.gridstate[i] = State.KNOWN
             if self.clues[i] == 0:
@@ -81,6 +89,9 @@ class Minesweeper(object):
         
     def flag_by_index(self, i):
         if self.gridstate[i] == State.UNKNOWN:
+            if not self.flags:
+                print("out of flags")
+                return
             self.gridstate[i] = State.FLAGGED
             self.flags -= 1
         elif self.gridstate[i] == State.FLAGGED:
