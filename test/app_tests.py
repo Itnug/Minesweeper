@@ -23,7 +23,7 @@ class AppTest(unittest.TestCase):
         event.x = 10
         event.y = 10
         self.testapp.flag(event) #make a flag
-        self.assertIsNotNone(self.testapp.flags[0], "flagged a cell, polygon not saved in flags")
+        self.assertIsNotNone(self.testapp.view.cells[0]['flag'], "flagged a cell, but flag not saved")
 
     def test_removed_from_app_flags_when_unflagged(self):
         self.testapp.model.clues[0] = 0 #make it so it has no bombs
@@ -33,8 +33,7 @@ class AppTest(unittest.TestCase):
         event.y = 10
         self.testapp.flag(event) #make a flag
         self.testapp.flag(event) #unmake a flag
-        self.assertFalse(self.testapp.flags[0] in self.testapp.canvas.find_all(),
-                          "unflagged a cell, but flags has " + str(self.testapp.flags[0]))
+        self.assertIsNone(self.testapp.view.cells[0]['flag'], "unflagged a cell, but flag not deleted")
 
 if __name__ == "__main__":
     unittest.main()
