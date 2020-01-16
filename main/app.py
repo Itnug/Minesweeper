@@ -35,18 +35,23 @@ class App(tk.Frame):
         
         parent.config(menu=menubar)
         
+        self.header_canvas = tk.Canvas(parent)
         self.canvas = tk.Canvas(parent)
         self.canvas.bind('<Button-1>', self.peek)
         self.canvas.bind('<Button-3>', self.flag)
         
         self.new_game()
+        self.update_clock()
         
     def new_game(self):
+        self.header_canvas.delete("all")
         self.canvas.delete("all")
+        
         self.model = Minesweeper(W, H)
         logging.debug(self.model)
 
-        self.view = MinesweeperView(self.canvas, self.model)
+        self.view = MinesweeperView(self.header_canvas, self.canvas, self.model)
+        self.header_canvas.pack()
         self.canvas.pack()
                 
     def peek(self, event):
@@ -71,6 +76,10 @@ class App(tk.Frame):
         self.model.flag(x, y)
         self.view.update()
 
+    def update_clock(self):
+        self.view.update_timer()
+        self.parent.after(500, self.update_clock)
+        
 
 if __name__ == '__main__':
     root = tk.Tk()

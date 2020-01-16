@@ -4,6 +4,7 @@ Created on 27-Apr-2017
 @author: Srinivas Gunti
 '''
 import random
+import time
 
 class State(object):
     UNKNOWN = 0
@@ -31,6 +32,8 @@ class Minesweeper(object):
             self.clues[place] = Minesweeper.BOMB
         self.update_clues()
         self.game_over = False
+        self.start_time = None
+        self.stop_time = None
         
     def update_clues(self):
         for i in range(self._size):
@@ -53,6 +56,7 @@ class Minesweeper(object):
                     self.clues[i]+=1
                     
     def peek(self, x, y):
+        self.start_timer()
         self.peek_by_index(y*self.x + x)
         if self.gridstate.count(State.KNOWN) == self._size - self.bombs:
             for i in range(self._size):
@@ -60,12 +64,14 @@ class Minesweeper(object):
                     self.flag_by_index(i)
             self.game_over = True
             self.win = True
+            self.stop_timer()
     
     def peek_by_index(self, i):
         if self.clues[i] == Minesweeper.BOMB:
             self.gridstate[i] = State.EXPLODED
             self.game_over = True
             self.win = False
+            self.stop_timer()
         elif self.gridstate[i] == State.UNKNOWN:
             self.gridstate[i] = State.KNOWN
             if self.clues[i] == 0:
@@ -86,6 +92,7 @@ class Minesweeper(object):
                         self.peek_by_index(i+nbr)
                 
     def flag(self, x,y):
+        self.start_timer()
         self.flag_by_index(y*self.x + x)
         
     def flag_by_index(self, i):
@@ -101,7 +108,22 @@ class Minesweeper(object):
         else:
             print("Cannot Flag")
 
+    def start_timer(self):
+        if not self.start_time:
+            self.start_time = int(time.time())
             
+    def stop_timer(self):
+        if self.start_time and not self.stop_time:
+            self.stop_time = int(time.time())
+
+    def get_time(self):
+        if not self.start_time:
+            return 0
+        elif not self.stop_time:
+            return min(999, int(time.time()) - self.start_time)
+        else:
+            return min(999, self.stop_time - self.start_time)
+        
     def __str__(self):
         return '\n'.join([' '.join(map(str,self.clues[i:i+self.x])) for i in range(0, len(self.clues), self.x)]) 
 

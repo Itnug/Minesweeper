@@ -14,11 +14,17 @@ LOSS_TEXT = 'Game Over'
 class MinesweeperView(object):
     CS = 20
         
-    def __init__(self, canvas, model):
+    def __init__(self, header, canvas, model):
         self.model = model
         
         W = self.model.x
         H = self.model.y
+        
+        self.header = header
+        self.header.config(width=W * self.CS, height=1 * self.CS, bg='#33B5E5', highlightthickness=0)
+        
+        self.flags = self.header.create_text(self.CS//4, self.CS//2, anchor='w')
+        self.timer = self.header.create_text(W*self.CS - self.CS//4, self.CS//2, anchor='e')
         self.canvas = canvas
         canvas.config(width=W * self.CS, height=H * self.CS, highlightthickness=0)        
         self.cells = [{'x':i % W, 'y':i // W} for i in range(W * H)]
@@ -33,7 +39,10 @@ class MinesweeperView(object):
             cell['flag'] = None
             cell['bomb'] = None
             
+        self.update()
+        
     def update(self):
+        self.header.itemconfig(self.flags, text=f'Flags: {self.model.flags}')
         for i, cell in enumerate(self.cells):
             X = cell['x'] * self.CS 
             Y = cell['y'] * self.CS
@@ -74,3 +83,6 @@ class MinesweeperView(object):
         self.canvas.create_text(X + 1, Y + 1, fill="black", font=("consolas", 22), text=ending_text)
         self.canvas.create_text(X, Y, fill="white", font=("consolas", 22), text=ending_text)
     
+    def update_timer(self):
+        self.header.itemconfig(self.timer, text=f'time: {self.model.get_time():03}')
+        
