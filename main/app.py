@@ -12,6 +12,7 @@ W = 10
 H = 10
 B = 10
 CS = 20
+FLAG_VECTOR = [4,2,16,2,16,20,14,20,14,10,10,10]
 
 class App(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -73,7 +74,8 @@ class App(tk.Frame):
                     if self.flags[i] not in widgets:
                         X = x*CS 
                         Y = y*CS
-                        self.flags[i] = self.canvas.create_polygon(X+4,Y+2,X+16,Y+2,X+16,Y+20,X+14,Y+20,X+14,Y+10,X+10,Y+10, fill='red')
+                        self.flags[i] = self.canvas.create_polygon(*FLAG_VECTOR, fill='red')
+                        self.canvas.move(self.flags[i], X, Y)
                 elif self.flags[i] in widgets:
                     self.canvas.delete(self.flags[i])
             
