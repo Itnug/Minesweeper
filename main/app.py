@@ -115,8 +115,10 @@ class App(tk.Frame):
         self.view.update_timer()
         self.parent.after(500, self.update_clock)
         
-
-if __name__ == '__main__':
+def start():
     root = tk.Tk()
     App(root).pack()
     root.mainloop()
+
+if __name__ == '__main__':
+    start()

@@ -1,2 +1,7 @@
 
 *.pyc
+
+dist/*
+build/*
+MANIFEST
+*.spec
