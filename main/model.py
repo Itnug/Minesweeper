@@ -84,6 +84,9 @@ class Minesweeper(object):
             self.stop_timer()
     
     def peek_by_index(self, i):
+        if self.gridstate[i] == State.FLAGGED:
+            logger.debug('Cannot peek')
+            return
         if self.clues[i] == Minesweeper.BOMB:
             self.gridstate[i] = State.EXPLODED
             self.game_over = True
