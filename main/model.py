@@ -5,6 +5,7 @@ Created on 27-Apr-2017
 '''
 import random
 import time
+from itertools import compress
 
 class State(object):
     UNKNOWN = 0
@@ -39,20 +40,9 @@ class Minesweeper(object):
         for i in range(self._size):
             if self.clues[i] == Minesweeper.BOMB:
                 continue
-            row = i // self.x
-            col = i % self.x
-            
-            conditions = [col>0 and row>0, row>0, col<self.x-1 and row>0,
-                          col>0, col<self.x-1,
-                          col>0 and row<self.y-1, row<self.y-1, col<self.x-1 and row<self.y-1]
-            
-            X, Y = 1, self.x
-            
-            nbd = [-X-Y, -Y, X-Y,
-                   -X,       X,
-                   -X+Y, Y, X+Y]
-            for nbr, condition in zip(nbd, conditions):
-                if condition and self.clues[i+nbr] == Minesweeper.BOMB:
+
+            for nbr in self.get_neighbors(i):
+                if self.clues[nbr] == Minesweeper.BOMB:
                     self.clues[i]+=1
                     
     def peek(self, x, y):
@@ -76,20 +66,8 @@ class Minesweeper(object):
             self.gridstate[i] = State.KNOWN
             if self.clues[i] == 0:
                 #no bombs in the nbd. safely check them all
-                row = i // self.x
-                col = i % self.x
-                
-                conditions = [col>0 and row>0, row>0, col<self.x-1 and row>0,
-                              col>0, col<self.x-1,
-                              col>0 and row<self.y-1, row<self.y-1, col<self.x-1 and row<self.y-1]
-                X, Y = 1, self.x
-                
-                nbd = [-X-Y, -Y, X-Y,
-                       -X,       X,
-                       -X+Y, Y, X+Y]
-                for nbr, condition in zip(nbd,conditions):
-                    if condition:
-                        self.peek_by_index(i+nbr)
+                for nbr in self.get_neighbors(i):
+                    self.peek_by_index(nbr)
                 
     def flag(self, x,y):
         self.start_timer()
@@ -108,6 +86,20 @@ class Minesweeper(object):
         else:
             print("Cannot Flag")
 
+    def get_neighbors(self, i):
+        row = i // self.x
+        col = i % self.x
+        
+        bounds_filter = [col>0 and row>0, row>0, col<self.x-1 and row>0,
+                        col>0, col<self.x-1,
+                        col>0 and row<self.y-1, row<self.y-1, col<self.x-1 and row<self.y-1]
+        X, Y = 1, self.x
+                
+        nbd = [i-X-Y, i-Y, i+X-Y,
+                i-X,        i+X,
+               i-X+Y, i+Y, i+X+Y]
+        return compress(nbd, bounds_filter)
+                
     def start_timer(self):
         if not self.start_time:
             self.start_time = int(time.time())

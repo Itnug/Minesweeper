@@ -7,8 +7,6 @@ import unittest
 import tkinter as tk
 from main.app import App
 from main.model import State
-import atexit
-from collections import namedtuple
 
 class AppTest(unittest.TestCase):
 
