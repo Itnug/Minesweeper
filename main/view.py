@@ -41,6 +41,10 @@ class MinesweeperView(object):
             
         self.update()
         
+    def update_clues(self):
+        for i, cell in enumerate(self.cells):
+            self.canvas.itemconfig(cell['clue'], text=str(self.model.clues[i]).replace("0", " "))
+            
     def update(self):
         self.header.itemconfig(self.flags, text=f'Flags: {self.model.flags}')
         for i, cell in enumerate(self.cells):

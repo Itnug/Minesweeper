@@ -63,6 +63,7 @@ class App(tk.Frame):
         self.canvas.delete("all")
         
         self.model = Minesweeper(W, H)
+        self.first_peek = True
         logging.debug(self.model)
 
         self.view = MinesweeperView(self.header_canvas, self.canvas, self.model)
@@ -90,7 +91,13 @@ class App(tk.Frame):
             return
         x = event.x // self.view.CS
         y = event.y // self.view.CS
-        self.model.peek(x, y)
+        if self.first_peek:
+            self.model.first_peek(x, y)
+            self.view.update_clues()
+            self.first_peek = False
+        else:
+            self.model.peek(x, y)
+        
         self.view.update()
     
     def flag(self, event):
