@@ -96,6 +96,15 @@ class Minesweeper(object):
                 #no bombs in the nbd. safely check them all
                 for nbr in self.get_neighbors(i):
                     self.peek_by_index(nbr)
+        elif self.gridstate[i] == State.KNOWN:
+            nbr_flags = 0
+            for nbr in self.get_neighbors(i):
+                if self.gridstate[nbr] == State.FLAGGED:
+                    nbr_flags += 1
+            if nbr_flags == self.clues[i]: #if all flags have been placed correctly
+                for nbr in self.get_neighbors(i): # it safe to peek all unknown nbrs
+                    if self.gridstate[nbr] == State.UNKNOWN:
+                        self.peek_by_index(nbr)
                 
     def flag(self, x,y):
         self.start_timer()
@@ -149,4 +158,10 @@ class Minesweeper(object):
         return '\n'.join([' '.join(map(str,self.clues[i:i+self.x])) for i in range(0, len(self.clues), self.x)]) 
 
 if __name__ == '__main__':
-    print(Minesweeper(10))  
+    class Difficulty(object):
+        pass
+    difficulty = Difficulty() 
+    difficulty.width = 10
+    difficulty.height = 10
+    difficulty.bombs = 10
+    print(Minesweeper(difficulty))  
