@@ -21,19 +21,17 @@ class Minesweeper(object):
     BOMB = 9 
     DIFFICULTY = 10
     
-    def __init__(self, x, y=None, bombs=None):
-        if not y: y = x
-        if not bombs: bombs = x*y//self.DIFFICULTY
-        
-        self.x = x
-        self.y = y
-        self._size = x * y
-        self.bombs = bombs
-        self.flags = bombs
+    def __init__(self, difficulty):
+        self.x = difficulty.width
+        self.y = difficulty.height
+        self.bombs = difficulty.bombs
+
+        self._size = self.x * self.y
+        self.flags = self.bombs
         self.clues = [0]*(self._size)
         self.gridstate = [State.UNKNOWN]*(self._size)
         
-        for i in random.sample(range(self._size), bombs):
+        for i in random.sample(range(self._size), self.bombs):
             self.place_bomb(i)
         
         self.game_over = False

@@ -8,17 +8,19 @@ import logging
 from main.model import Minesweeper
 from main.view import MinesweeperView
 import tkinter as tk
+from collections import namedtuple
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # Overrides:
 # MinesweeperView.CS = 30
-
-W = 10
-H = 10
-B = 10
-
+Difficulty = namedtuple('Difficulty', ['width', 'height', 'bombs'])
+DIFFICULTY_LEVELS = {
+    'easy': Difficulty(9, 9, 10),
+    'intermediate': Difficulty(15, 15, 40),
+    'hard': Difficulty(30, 16, 99),
+}
 
 class App(tk.Frame):
 
@@ -35,16 +37,10 @@ class App(tk.Frame):
         
         options_menu = tk.Menu(menubar, tearoff=0)
         difficulty_submenu = tk.Menu(options_menu, tearoff=0)
-        difficulty_submenu.add_radiobutton(label="Easy", command=lambda: self.set_difficulty(10))
-        difficulty_submenu.add_radiobutton(label="Medium", command=lambda: self.set_difficulty(8))
-        difficulty_submenu.add_radiobutton(label="Hard", command=lambda: self.set_difficulty(6))
+        difficulty_submenu.add_radiobutton(label="Easy", command=lambda: self.set_difficulty(DIFFICULTY_LEVELS['easy']))
+        difficulty_submenu.add_radiobutton(label="Intermediate", command=lambda: self.set_difficulty(DIFFICULTY_LEVELS['intermediate']))
+        difficulty_submenu.add_radiobutton(label="Hard", command=lambda: self.set_difficulty(DIFFICULTY_LEVELS['hard']))
         options_menu.add_cascade(label='Difficulty', menu=difficulty_submenu, underline=0)
-        
-        size_submenu = tk.Menu(options_menu, tearoff=0)
-        size_submenu.add_radiobutton(label='small', command=lambda: self.set_size(10))
-        size_submenu.add_radiobutton(label='medium', command=lambda: self.set_size(20))
-        size_submenu.add_radiobutton(label='large', command=lambda: self.set_size(30))
-        options_menu.add_cascade(label='Size', menu=size_submenu, underline=0)
          
         menubar.add_cascade(label='Options', menu=options_menu)
         
@@ -55,6 +51,7 @@ class App(tk.Frame):
         self.canvas.bind('<Button-1>', self.peek)
         self.canvas.bind('<Button-3>', self.flag)
         
+        self.difficulty = DIFFICULTY_LEVELS['easy']
         self.new_game()
         self.update_clock()
         
@@ -62,7 +59,7 @@ class App(tk.Frame):
         self.header_canvas.delete("all")
         self.canvas.delete("all")
         
-        self.model = Minesweeper(W, H)
+        self.model = Minesweeper(self.difficulty)
         self.first_peek = True
         logging.debug(self.model)
 
@@ -70,17 +67,9 @@ class App(tk.Frame):
         self.header_canvas.pack()
         self.canvas.pack()
     
-    def set_difficulty(self, n):
-        '''one bomb for every n cells'''
-        Minesweeper.DIFFICULTY = n
-        self.new_game()
-    
-    def set_size(self, n):
-        '''n width and n height'''
-        global W
-        global H
-        W = n
-        H = n
+    def set_difficulty(self, difficulty):
+        '''will start a new game with chosen difficulty'''
+        self.difficulty = difficulty
         self.new_game()
             
     def peek(self, event):
