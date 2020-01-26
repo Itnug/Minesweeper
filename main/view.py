@@ -88,5 +88,5 @@ class MinesweeperView(object):
         self.canvas.create_text(X, Y, fill="white", font=("consolas", 22), text=ending_text)
     
     def update_timer(self):
-        self.header.itemconfig(self.timer, text=f'time: {self.model.get_time():03}')
+        self.header.itemconfig(self.timer, text=f'time: {int(self.model.get_time()):03}')
         

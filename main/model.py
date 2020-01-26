@@ -150,9 +150,9 @@ class Minesweeper(object):
         if not self.start_time:
             return 0
         elif not self.stop_time:
-            return min(999, int(time.time() - self.start_time))
+            return min(999, time.time() - self.start_time)
         else:
-            return min(999, int(self.stop_time - self.start_time))
+            return min(999, self.stop_time - self.start_time)
         
     def __str__(self):
         return '\n'.join([' '.join(map(str,self.clues[i:i+self.x])) for i in range(0, len(self.clues), self.x)]) 
