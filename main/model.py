@@ -29,39 +29,21 @@ class Minesweeper(object):
         self.clues = [0]*(self._size)
         self.gridstate = [State.UNKNOWN]*(self._size)
         
-        for i in random.sample(range(self._size), self.bombs):
-            self.place_bomb(i)
-        
         self.game_over = False
         
     def place_bomb(self, i):
         if self.clues[i] == Minesweeper.BOMB:
             logger.warning(f'Cannot place. Bomb already present at {i}')
-            return False
         self.clues[i] = Minesweeper.BOMB
         for nbr in self.get_neighbors(i):
             if self.clues[nbr] != Minesweeper.BOMB:
                 self.clues[nbr] += 1
-        return True
-    
-    def remove_bomb(self, i):
-        if self.clues[i] != Minesweeper.BOMB:
-            logger.warning(f'Cannot remove. No bomb at {i}')
-            return False
-        self.clues[i] = 0
-        for nbr in self.get_neighbors(i):
-            if self.clues[nbr] != Minesweeper.BOMB:
-                self.clues[nbr] -= 1
-            else:
-                self.clues[i] += 1
-        return True
     
     def first_peek(self, i):
-        if self.clues[i] == Minesweeper.BOMB:
-            j = 0
-            while not self.place_bomb(j):
-                j += 1
-            self.remove_bomb(i)
+        population = [i for j in (range(i), range(i+1, self._size)) for i in j]
+        for j in random.sample(population, self.bombs):
+                self.place_bomb(j)
+
         self.peek(i)
         logger.warning(self)
     
