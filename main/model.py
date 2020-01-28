@@ -48,48 +48,50 @@ class Minesweeper(object):
         logger.warning(self)
     
     def peek(self, i):
-        if self.gridstate[i] == State.FLAGGED:
-            logger.debug('Cannot peek')
+        if self.gridstate[i] != State.UNKNOWN:
             return
         if self.clues[i] == Minesweeper.BOMB:
             self.gridstate[i] = State.EXPLODED
             self.game_over = True
             self.win = False
-        elif self.gridstate[i] == State.UNKNOWN:
+        else:
             self.gridstate[i] = State.KNOWN
             if self.clues[i] == 0:
                 #no bombs in the nbd. safely check them all
                 for nbr in self.get_neighbors(i):
                     self.peek(nbr)
-        elif self.gridstate[i] == State.KNOWN:
-            nbr_flags = 0
-            for nbr in self.get_neighbors(i):
-                if self.gridstate[nbr] == State.FLAGGED:
-                    nbr_flags += 1
-            if nbr_flags == self.clues[i]: #if all flags have been placed correctly
-                for nbr in self.get_neighbors(i): # it safe to peek all unknown nbrs
-                    if self.gridstate[nbr] == State.UNKNOWN:
-                        self.peek(nbr)
-        if self.gridstate.count(State.KNOWN) == self._size - self.bombs:
-            for j in range(self._size):
-                if self.gridstate[j] == State.UNKNOWN:
-                    self.flag(j)
-            self.game_over = True
-            self.win = True
-                
+        self.check_win()
+    
+    def quick_play(self, i):
+        nbr_flags = 0
+        for nbr in self.get_neighbors(i):
+            if self.gridstate[nbr] == State.FLAGGED:
+                nbr_flags += 1
+        
+        if nbr_flags == self.clues[i]: #if all flags have been placed correctly
+            for nbr in self.get_neighbors(i): # it safe to peek all unknown nbrs
+                if self.gridstate[nbr] == State.UNKNOWN:
+                    self.peek(nbr)
+        
+        self.check_win()
+                 
     def flag(self, i):
         if self.gridstate[i] == State.UNKNOWN:
-            if not self.flags:
-                print("out of flags")
-                return
             self.gridstate[i] = State.FLAGGED
             self.flags -= 1
         elif self.gridstate[i] == State.FLAGGED:
             self.gridstate[i] = State.UNKNOWN
             self.flags += 1
-        else:
-            logger.warning("Cannot Flag")
 
+    def check_win(self):
+        if self.gridstate.count(State.KNOWN) == self._size - self.bombs:
+            for j in range(self._size):
+                if self.gridstate[j] == State.UNKNOWN:
+                    self.flag(j)
+            
+            self.game_over = True
+            self.win = True
+            
     def get_neighbors(self, i):
         row = i // self.x
         col = i % self.x
@@ -107,12 +109,3 @@ class Minesweeper(object):
         
     def __str__(self):
         return '\n'.join([' '.join(map(str,self.clues[i:i+self.x])) for i in range(0, len(self.clues), self.x)]) 
-
-if __name__ == '__main__':
-    class Difficulty(object):
-        pass
-    difficulty = Difficulty() 
-    difficulty.width = 10
-    difficulty.height = 10
-    difficulty.bombs = 10
-    print(Minesweeper(difficulty))  

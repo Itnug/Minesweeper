@@ -38,6 +38,9 @@ def click(func):
     def wrapper(self, event):
         logger.debug(f'({event.x},{event.y})')
         logger.debug(f'{func.__name__}')
+        if self.model.game_over:
+            return
+
         x = event.x // self.view.CS
         y = event.y // self.view.CS
         W = self.difficulty.width
@@ -73,7 +76,7 @@ class App(tk.Frame):
         self.canvas = tk.Canvas(parent)
         self.canvas.bind('<Button-1>', self.peek)
         self.canvas.bind('<Button-3>', self.flag)
-        
+        self.canvas.bind('<Double-Button-1>', self.quick_play)
         self.mem = load_mem(MEM_FILE)
         raw_data = self.mem.get('difficulty', difficulty.Beginner)
         self.difficulty = difficulty.Difficulty(*raw_data)
@@ -102,9 +105,6 @@ class App(tk.Frame):
     
     @click
     def peek(self, i):
-        if self.model.game_over:
-            return
-
         if self.first_peek:
             self.model.first_peek(i)
             self.view.update_clues()
@@ -117,12 +117,15 @@ class App(tk.Frame):
     
     @click    
     def flag(self, i):
-        if self.model.game_over:
-            return
         self.model.flag(i)
         self.timer.start()
         self.view.update()
 
+    @click
+    def quick_play(self, i):
+        self.model.quick_play(i)
+        self.view.update()
+        
     def update_clock(self):
         if self.model.game_over:
             self.timer.stop()
