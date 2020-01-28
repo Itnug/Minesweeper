@@ -11,6 +11,7 @@ from main import difficulty
 from main.model import Minesweeper
 from main.view import MinesweeperView
 import tkinter as tk
+from main.timer import Timer
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,18 @@ def load_mem(file_path):
 
 # Overrides:
 # MinesweeperView.CS = 30
-
+def click(func):
+    def wrapper(self, event):
+        logger.debug(f'({event.x},{event.y})')
+        logger.debug(f'{func.__name__}')
+        x = event.x // self.view.CS
+        y = event.y // self.view.CS
+        W = self.difficulty.width
+        
+        i = y*W + x
+        return func(self, i)
+    return wrapper
+        
 class App(tk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
@@ -67,6 +79,7 @@ class App(tk.Frame):
         self.difficulty = difficulty.Difficulty(*raw_data)
         print(self.difficulty)
         self.new_game()
+        self.timer = Timer()
         self.update_clock()
         
     def new_game(self):
@@ -77,7 +90,7 @@ class App(tk.Frame):
         self.first_peek = True
         logging.debug(self.model)
 
-        self.view = MinesweeperView(self.header_canvas, self.canvas, self.model)
+        self.view = MinesweeperView(self)
         self.header_canvas.pack()
         self.canvas.pack()
     
@@ -86,35 +99,33 @@ class App(tk.Frame):
         self.difficulty = difficulty
         self.new_game()
             
-    def peek(self, event):
-        logger.debug(f'({event.x},{event.y})')
-        logger.debug('left click')
-        
+    
+    @click
+    def peek(self, i):
         if self.model.game_over:
             return
-        x = event.x // self.view.CS
-        y = event.y // self.view.CS
+
         if self.first_peek:
-            self.model.first_peek(x, y)
+            self.model.first_peek(i)
             self.view.update_clues()
             self.first_peek = False
+            self.timer.start()
         else:
-            self.model.peek(x, y)
+            self.model.peek(i)
         
         self.view.update()
     
-    def flag(self, event):
-        logger.debug(f'({event.x},{event.y})')
-        logger.debug('right click')
-        
+    @click    
+    def flag(self, i):
         if self.model.game_over:
             return
-        x = event.x // self.view.CS
-        y = event.y // self.view.CS
-        self.model.flag(x, y)
+        self.model.flag(i)
+        self.timer.start()
         self.view.update()
 
     def update_clock(self):
+        if self.model.game_over:
+            self.timer.stop()
         self.view.update_timer()
         self.parent.after(500, self.update_clock)
         

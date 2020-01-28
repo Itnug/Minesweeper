@@ -5,7 +5,6 @@ Created on 27-Apr-2017
 '''
 import logging
 import random
-import time
 from itertools import compress
 
 logger = logging.getLogger(__name__)
@@ -19,7 +18,6 @@ class State(object):
     
 class Minesweeper(object):
     BOMB = 9 
-    DIFFICULTY = 10
     
     def __init__(self, difficulty):
         self.x = difficulty.width
@@ -35,8 +33,6 @@ class Minesweeper(object):
             self.place_bomb(i)
         
         self.game_over = False
-        self.start_time = None
-        self.stop_time = None
         
     def place_bomb(self, i):
         if self.clues[i] == Minesweeper.BOMB:
@@ -60,28 +56,16 @@ class Minesweeper(object):
                 self.clues[i] += 1
         return True
     
-    def first_peek(self, x, y):
-        self.start_timer()
-        i = y * self.x + x
+    def first_peek(self, i):
         if self.clues[i] == Minesweeper.BOMB:
             j = 0
             while not self.place_bomb(j):
                 j += 1
             self.remove_bomb(i)
-        self.peek(x, y)
+        self.peek(i)
         logger.warning(self)
-                    
-    def peek(self, x, y):
-        self.peek_by_index(y*self.x + x)
-        if self.gridstate.count(State.KNOWN) == self._size - self.bombs:
-            for i in range(self._size):
-                if self.gridstate[i] == State.UNKNOWN:
-                    self.flag_by_index(i)
-            self.game_over = True
-            self.win = True
-            self.stop_timer()
     
-    def peek_by_index(self, i):
+    def peek(self, i):
         if self.gridstate[i] == State.FLAGGED:
             logger.debug('Cannot peek')
             return
@@ -89,13 +73,12 @@ class Minesweeper(object):
             self.gridstate[i] = State.EXPLODED
             self.game_over = True
             self.win = False
-            self.stop_timer()
         elif self.gridstate[i] == State.UNKNOWN:
             self.gridstate[i] = State.KNOWN
             if self.clues[i] == 0:
                 #no bombs in the nbd. safely check them all
                 for nbr in self.get_neighbors(i):
-                    self.peek_by_index(nbr)
+                    self.peek(nbr)
         elif self.gridstate[i] == State.KNOWN:
             nbr_flags = 0
             for nbr in self.get_neighbors(i):
@@ -104,13 +87,15 @@ class Minesweeper(object):
             if nbr_flags == self.clues[i]: #if all flags have been placed correctly
                 for nbr in self.get_neighbors(i): # it safe to peek all unknown nbrs
                     if self.gridstate[nbr] == State.UNKNOWN:
-                        self.peek_by_index(nbr)
+                        self.peek(nbr)
+        if self.gridstate.count(State.KNOWN) == self._size - self.bombs:
+            for j in range(self._size):
+                if self.gridstate[j] == State.UNKNOWN:
+                    self.flag(j)
+            self.game_over = True
+            self.win = True
                 
-    def flag(self, x,y):
-        self.start_timer()
-        self.flag_by_index(y*self.x + x)
-        
-    def flag_by_index(self, i):
+    def flag(self, i):
         if self.gridstate[i] == State.UNKNOWN:
             if not self.flags:
                 print("out of flags")
@@ -137,22 +122,6 @@ class Minesweeper(object):
                i-X+Y, i+Y, i+X+Y]
         
         return compress(nbd, bounds_filter)
-                
-    def start_timer(self):
-        if not self.start_time:
-            self.start_time = time.time()
-            
-    def stop_timer(self):
-        if self.start_time and not self.stop_time:
-            self.stop_time = time.time()
-
-    def get_time(self):
-        if not self.start_time:
-            return 0
-        elif not self.stop_time:
-            return min(999, time.time() - self.start_time)
-        else:
-            return min(999, self.stop_time - self.start_time)
         
     def __str__(self):
         return '\n'.join([' '.join(map(str,self.clues[i:i+self.x])) for i in range(0, len(self.clues), self.x)]) 
